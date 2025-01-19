@@ -78,4 +78,25 @@ export async function DELETE(request: Request) {
       error: error instanceof Error ? error.message : 'Failed to delete tweet'
     }, { status: 500 })
   }
+}
+
+export async function PUT(request: Request) {
+  try {
+    const { id, content } = await request.json()
+    const { error } = await supabase
+      .from('saved_tweets')
+      .update({ content })
+      .match({ id })
+
+    if (error) {
+      console.error('Supabase error:', error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+    return NextResponse.json({ message: 'Tweet updated successfully' })
+  } catch (error) {
+    console.error('Server error:', error)
+    return NextResponse.json({ 
+      error: error instanceof Error ? error.message : 'Failed to update tweet'
+    }, { status: 500 })
+  }
 } 
