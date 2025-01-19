@@ -18,18 +18,8 @@ export default function Home() {
         body: JSON.stringify({ message: inputText }),
       })
       
-      // This was my log to check where the error was coming from
-      // console.log('Response status:', response.status)
-      // if (!response.ok) {
-      //   throw new Error(`HTTP error! status: ${response.status}`)
-      // }
-      
-      // console.log('Raw API Content:', data.content[0])
-      // console.log('Data type:', typeof data)
-      // console.log('Available properties:', Object.keys(data))
-
       const data = await response.json()
-      console.log('Raw API Response:', data)
+      // console.log('Raw API Response:', data)
       if (data.error) {
         throw new Error(data.error)
       }
@@ -41,12 +31,9 @@ export default function Home() {
     setIsLoading(false)
   }
 
-  const copyTweet = async (tweet: string) => {
-    try {
-      await navigator.clipboard.writeText(tweet)
-    } catch (err) {
-      console.error('Failed to copy text:', err)
-    }
+  const shareOnTwitter = (tweet: string) => {
+    const tweetText = encodeURIComponent(tweet)
+    window.open(`https://twitter.com/intent/tweet?text=${tweetText}`, '_blank')
   }
 
   return (
@@ -110,10 +97,13 @@ export default function Home() {
                       {280 - tweet.length} characters remaining
                     </span>
                     <button
-                      onClick={() => copyTweet(tweet)}
-                      className="text-sm text-blue-500 hover:text-blue-600"
+                      onClick={() => shareOnTwitter(tweet)}
+                      className="text-sm text-blue-500 hover:text-blue-600 flex items-center gap-1"
                     >
-                      Copy
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                      </svg>
+                      Tweet
                     </button>
                   </div>
                 </div>
@@ -124,4 +114,4 @@ export default function Home() {
       </div>
     </main>
   )
-} 
+}
