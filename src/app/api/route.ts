@@ -1,29 +1,21 @@
 import { NextResponse } from 'next/server'
+import Anthropic from '@anthropic-ai/sdk'
 
 export async function POST(req: Request) {
   try {
     const body = await req.json()
     
-    const response = await fetch('YOUR_API_ENDPOINT', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.CLAUDE_API_KEY}`
-      },
-      body: JSON.stringify(body)
+    const anthropic = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY
     })
 
-    // Check if response is JSON before trying to parse it
-    const contentType = response.headers.get('content-type')
-    if (!contentType || !contentType.includes('application/json')) {
-      // Log the actual response for debugging
-      const text = await response.text()
-      console.error('Unexpected response:', text)
-      throw new Error('Expected JSON response but got HTML')
-    }
+    const response = await anthropic.messages.create({
+      model: "claude-3-5-sonnet-20241022",
+      max_tokens: 1024,
+      messages: [{ role: "user", content: 'Please remix the following text in a creative way: ' + body.message }]
+    })
 
-    const data = await response.json()
-    return NextResponse.json(data)
+    return NextResponse.json(response)
 
   } catch (error) {
     console.error('API Error:', error)

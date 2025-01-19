@@ -9,15 +9,29 @@ export default function Home() {
   const handleRemix = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch('/api/remix', {
+      console.log('Sending request with:', inputText)
+      const response = await fetch('/api', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ text: inputText }),
+        body: JSON.stringify({ message: inputText }),
       })
+      
+      // This was my log to check where the error was coming from
+      // console.log('Response status:', response.status)
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`)
+      // }
+      
+      // console.log('Raw API Response:', data)
+      // console.log('Raw API Content:', data.content[0])
+      // console.log('Data type:', typeof data)
+      // console.log('Available properties:', Object.keys(data))
+
       const data = await response.json()
-      setOutputText(data.remixed)
+      setOutputText(data.content[0].text)
+
     } catch (error) {
       console.error('Error:', error)
       setOutputText('Failed to remix content. Please try again.')
