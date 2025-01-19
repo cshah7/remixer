@@ -10,7 +10,10 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.33.1",
+    "@prisma/client": "^6.2.1",
+    "@supabase/supabase-js": "^2.47.16",
     "next": "15.1.5",
+    "prisma": "^6.2.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

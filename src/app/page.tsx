@@ -1,10 +1,51 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+
+interface SavedTweet {
+  id: number
+  content: string
+  createdAt: string
+}
 
 export default function Home() {
   const [inputText, setInputText] = useState('')
   const [tweets, setTweets] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [savedTweets, setSavedTweets] = useState<SavedTweet[]>([])
+
+  useEffect(() => {
+    fetchSavedTweets()
+  }, [])
+
+  const fetchSavedTweets = async () => {
+    try {
+      const response = await fetch('/api/saved-tweets')
+      const data = await response.json()
+      if (!data.error) {
+        setSavedTweets(data)
+      }
+    } catch (error) {
+      console.error('Error fetching saved tweets:', error)
+    }
+  }
+
+  const saveTweet = async (tweet: string) => {
+    try {
+      const response = await fetch('/api/saved-tweets', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ content: tweet }),
+      })
+      const data = await response.json()
+      if (!data.error) {
+        await fetchSavedTweets()
+      }
+    } catch (error) {
+      console.error('Error saving tweet:', error)
+    }
+  }
 
   const handleRemix = async () => {
     setIsLoading(true)
@@ -96,21 +137,58 @@ export default function Home() {
                     <span className="text-sm text-gray-500">
                       {280 - tweet.length} characters remaining
                     </span>
-                    <button
-                      onClick={() => shareOnTwitter(tweet)}
-                      className="text-sm text-blue-500 hover:text-blue-600 flex items-center gap-1"
-                    >
-                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                      </svg>
-                      Tweet
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => saveTweet(tweet)}
+                        className="text-sm text-green-500 hover:text-green-600 flex items-center gap-1"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Save
+                      </button>
+                      <button
+                        onClick={() => shareOnTwitter(tweet)}
+                        className="text-sm text-blue-500 hover:text-blue-600 flex items-center gap-1"
+                      >
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        </svg>
+                        Tweet
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
         )}
+
+        {/* Saved Tweets Sidebar */}
+        <div className="fixed right-0 top-0 h-screen w-80 bg-white border-l border-gray-200 p-6 overflow-y-auto shadow-lg transform transition-transform">
+          <h2 className="text-lg font-bold text-gray-900 mb-4">Saved Tweets</h2>
+          <div className="space-y-4">
+            {savedTweets.map((tweet) => (
+              <div key={tweet.id} className="p-4 bg-white border border-gray-200 rounded-lg">
+                <p className="text-gray-900 mb-2">{tweet.content}</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500">
+                    {new Date(tweet.createdAt).toLocaleDateString()}
+                  </span>
+                  <button
+                    onClick={() => shareOnTwitter(tweet.content)}
+                    className="text-sm text-blue-500 hover:text-blue-600 flex items-center gap-1"
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                    Tweet
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </main>
   )
