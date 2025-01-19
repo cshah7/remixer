@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 interface SavedTweet {
   id: number
   content: string
-  createdAt: string
+  created_at: string
 }
 
 export default function Home() {
@@ -31,6 +31,7 @@ export default function Home() {
 
   const saveTweet = async (tweet: string) => {
     try {
+      console.log('Attempting to save tweet:', tweet)
       const response = await fetch('/api/saved-tweets', {
         method: 'POST',
         headers: {
@@ -38,12 +39,40 @@ export default function Home() {
         },
         body: JSON.stringify({ content: tweet }),
       })
+      
       const data = await response.json()
-      if (!data.error) {
-        await fetchSavedTweets()
+      console.log('Response from server:', data)
+      
+      if (data.error) {
+        console.error('Error details:', {
+          message: data.error,
+          details: data.details,
+          url: data.url,
+          hasKey: data.hasKey
+        })
+        return
       }
+      
+      await fetchSavedTweets()
     } catch (error) {
       console.error('Error saving tweet:', error)
+    }
+  }
+
+  const deleteTweet = async (id: number) => {
+    try {
+      const response = await fetch('/api/saved-tweets', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id }),
+      })
+
+      if (!response.ok) throw new Error('Failed to delete tweet')
+      await fetchSavedTweets() // Refresh the saved tweets list
+    } catch (error) {
+      console.error('Error deleting tweet:', error)
     }
   }
 
@@ -173,17 +202,28 @@ export default function Home() {
                 <p className="text-gray-900 mb-2">{tweet.content}</p>
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-gray-500">
-                    {new Date(tweet.createdAt).toLocaleDateString()}
+                    {new Date(tweet.created_at).toLocaleDateString()}
                   </span>
-                  <button
-                    onClick={() => shareOnTwitter(tweet.content)}
-                    className="text-sm text-blue-500 hover:text-blue-600 flex items-center gap-1"
-                  >
-                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                    </svg>
-                    Tweet
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => deleteTweet(tweet.id)}
+                      className="text-sm text-red-500 hover:text-red-600 flex items-center gap-1"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      Delete
+                    </button>
+                    <button
+                      onClick={() => shareOnTwitter(tweet.content)}
+                      className="text-sm text-blue-500 hover:text-blue-600 flex items-center gap-1"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                      </svg>
+                      Tweet
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
